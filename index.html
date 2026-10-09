@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#07070d">
+  <meta name="description" content="PinDrop — Bulunduğun yerde aktivite keşfet, yeni insanlarla tanış.">
+  <title>PinDrop — Aktivite Keşfet</title>
+
+  <!-- MapLibre GL JS -->
+  <!-- MapLibre GL JS -->
+  <link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css">
+  <script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="css/index.css">
+  <link rel="stylesheet" href="css/map.css">
+  <link rel="stylesheet" href="css/swipe.css">
+  <link rel="stylesheet" href="css/messages.css">
+  <link rel="stylesheet" href="css/profile.css">
+  <link rel="stylesheet" href="css/events.css">
+</head>
+<body>
+
+  <div class="device-frame">
+    <!-- Status Bar -->
+    <div class="status-bar">
+      <span class="status-bar__time" id="statusTime">21:14</span>
+      <span class="status-bar__app-name" style="font-weight: 800; font-size: 15px; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; letter-spacing: -0.5px;">PinDrop</span>
+      <div class="status-bar__icons">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="1" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="2" fill="none"/><rect x="7" y="9" width="6" height="6" rx="1" fill="currentColor"/><path d="M21 10v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+
+    <!-- Screens Container -->
+    <div class="screens-container">
+
+      <!-- ===== MAP SCREEN ===== -->
+      <div id="screen-map" class="screen active">
+        <!-- Map Search Bar -->
+        <div class="map-search-bar" id="mapSearchBar">
+          <svg class="map-search-bar__icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="mapSearchInput" class="map-search-bar__input" placeholder="Aktivite veya semt ara... (Kadıköy, okey)">
+          <button id="mapSearchClearBtn" class="map-search-clear-btn" style="display: none;" title="Temizle">✕</button>
+        </div>
+
+        <!-- Category Filter Bar -->
+        <div class="map-filters" id="mapFilters">
+          <button class="map-filter-chip active" data-category="all">
+            <span class="map-filter-chip__icon">✨</span>
+            <span>Tümü</span>
+          </button>
+          <button class="map-filter-chip" data-category="gaming">
+            <span class="map-filter-chip__icon">🎮</span>
+            <span>Oyun</span>
+          </button>
+          <button class="map-filter-chip" data-category="cafe">
+            <span class="map-filter-chip__icon">☕</span>
+            <span>Kafe</span>
+          </button>
+          <button class="map-filter-chip" data-category="art">
+            <span class="map-filter-chip__icon">🎨</span>
+            <span>Sanat</span>
+          </button>
+          <button class="map-filter-chip" data-category="sport">
+            <span class="map-filter-chip__icon">🏃</span>
+            <span>Spor</span>
+          </button>
+          <button class="map-filter-chip" data-category="music">
+            <span class="map-filter-chip__icon">🎵</span>
+            <span>Müzik</span>
+          </button>
+          <button class="map-filter-chip" data-category="other">
+            <span class="map-filter-chip__icon">🎯</span>
+            <span>Diğer</span>
+          </button>
+        </div>
+
+        <!-- Map Container -->
+        <div id="mapContainer" class="map-container"></div>
+
+        <!-- User Location Button -->
+        <button class="map-locate-btn" id="locateBtn" title="Konumuma Git">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v4M12 18v4M2 12h4M18 12h4"/>
+          </svg>
+        </button>
+
+        <!-- Add Pin FAB -->
+        <button class="map-fab" id="addPinBtn" title="Pin Ekle">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <line x1="12" y1="5" x2="12" y2="19"/>
+            <line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+        </button>
+
+        <!-- Pin Count Badge -->
+        <div class="map-pin-count" id="pinCount">
+          <span class="map-pin-count__dot"></span>
+          <span id="pinCountText">20 aktivite</span>
+        </div>
+      </div>
+
+      <!-- ===== SWIPE SCREEN ===== -->
+      <div id="screen-swipe" class="screen">
+        <div class="swipe-header">
+          <h1 class="swipe-header__title">Keşfet</h1>
+          <p class="swipe-header__subtitle">Yakınındaki insanları keşfet</p>
+        </div>
+
+        <div class="swipe-cards-container" id="swipeContainer">
+          <!-- Cards are injected by JS -->
+        </div>
+
+        <div class="swipe-actions" id="swipeActions">
+          <button class="swipe-action-btn swipe-action-btn--reject" id="btnReject" title="Geç">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+          <button class="swipe-action-btn swipe-action-btn--super" id="btnSuper" title="Süper Beğen">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+            </svg>
+          </button>
+          <button class="swipe-action-btn swipe-action-btn--accept" id="btnAccept" title="Beğen">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- ===== MESSAGES SCREEN ===== -->
+      <div id="screen-messages" class="screen">
+        <div class="messages-header">
+          <h1 class="messages-header__title">Mesajlar</h1>
+        </div>
+        <div class="messages-list" id="messagesList">
+          <!-- Injected by JS -->
+        </div>
+
+        <!-- Chat View (hidden by default) -->
+        <div class="chat-view" id="chatView">
+          <div class="chat-header" id="chatHeader">
+            <button class="chat-back-btn" id="chatBackBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+            </button>
+            <div class="chat-header__user" id="chatHeaderUser">
+              <!-- Injected by JS -->
+            </div>
+          </div>
+          <div class="chat-messages" id="chatMessages">
+            <!-- Injected by JS -->
+          </div>
+          <div class="chat-input-bar">
+            <input type="text" class="input chat-input" id="chatInput" placeholder="Mesaj yaz...">
+            <button class="chat-send-btn" id="chatSendBtn">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== PROFILE SCREEN ===== -->
+      <div id="screen-profile" class="screen">
+        <div class="profile-container" id="profileContainer">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+      <!-- ===== EVENTS SCREEN ===== -->
+      <div id="screen-events" class="screen">
+        <div class="events-header">
+          <h1 class="events-header__title">Etkinlikler</h1>
+          <button class="events-create-btn" id="createEventBtn" title="Etkinlik Oluştur">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Oluştur
+          </button>
+        </div>
+        <p class="events-header__subtitle">72 saatlik grup aktiviteleri</p>
+
+        <div class="events-list" id="eventsList">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button class="nav-item active" data-screen="screen-map" id="nav-map">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+          <circle cx="12" cy="10" r="3"/>
+        </svg>
+        <span class="nav-item__label">Harita</span>
+      </button>
+      <button class="nav-item" data-screen="screen-swipe" id="nav-swipe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2" y="2" width="20" height="20" rx="5"/>
+          <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 0 1 0 4H8"/>
+          <path d="M12 18V6"/>
+        </svg>
+        <span class="nav-item__label">Keşfet</span>
+      </button>
+      <button class="nav-item" data-screen="screen-messages" id="nav-messages">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+        </svg>
+        <span class="nav-item__label">Mesajlar</span>
+        <span class="nav-item__badge" id="msgBadge">3</span>
+      </button>
+      <button class="nav-item" data-screen="screen-events" id="nav-events">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span class="nav-item__label">Etkinlik</span>
+      </button>
+      <button class="nav-item" data-screen="screen-profile" id="nav-profile">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <span class="nav-item__label">Profil</span>
+      </button>
+    </nav>
+
+    <!-- Add Pin Modal (inside device-frame) -->
+    <div class="modal-overlay" id="addPinModal">
+      <div class="modal-overlay__bg" id="addPinModalBg"></div>
+      <div class="modal-content">
+        <div class="modal-handle"></div>
+        <h2 style="font-size: var(--font-lg); font-weight: 700; margin-bottom: var(--space-md);">📍 Yeni Pin Ekle</h2>
+        
+        <div style="margin-bottom: var(--space-md);">
+          <label style="font-size: var(--font-sm); color: var(--text-secondary); margin-bottom: var(--space-xs); display: block;">Kategori Seç</label>
+          <div class="pin-category-grid" id="pinCategoryGrid">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <div style="margin-bottom: var(--space-sm);">
+          <label style="font-size: var(--font-sm); color: var(--text-secondary); margin-bottom: var(--space-xs); display: block;">Açıklama</label>
+          <textarea class="input" id="pinDescription" rows="2" placeholder="Bu civarda ne var? Dükkan ismi vermeden açıkla..." style="resize: none;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: var(--space-md); padding-top: var(--space-sm);">
+          <button class="btn-ghost" id="cancelPinBtn" style="flex: 1; padding: 14px;">İptal</button>
+          <button class="btn-gradient" id="savePinBtn" style="flex: 1; padding: 14px;">Devam Et 📍</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match Celebration Overlay (inside device-frame) -->
+    <div class="match-overlay" id="matchOverlay">
+      <div class="match-overlay__title">Eşleşme! 🎉</div>
+      <div class="match-overlay__avatars">
+        <div class="avatar avatar--xl" id="matchAvatar1" style="background: var(--gradient-primary);">S</div>
+        <div class="match-overlay__heart">💜</div>
+        <div class="avatar avatar--xl" id="matchAvatar2" style="background: var(--gradient-blue);">?</div>
+      </div>
+      <p style="color: var(--text-secondary); margin-bottom: var(--space-2xl); text-align: center;">Birbirinizi beğendiniz!<br>Hemen mesaj at!</p>
+      <div class="match-overlay__actions">
+        <button class="btn-ghost" id="matchLaterBtn">Sonra</button>
+        <button class="btn-gradient" id="matchMessageBtn">💬 Mesaj Gönder</button>
+      </div>
+    </div>
+
+    <!-- Create Event Modal (inside device-frame) -->
+    <div class="modal-overlay" id="createEventModal">
+      <div class="modal-overlay__bg" id="createEventModalBg"></div>
+      <div class="modal-content">
+        <div class="modal-handle"></div>
+        <h2 style="font-size: var(--font-lg); font-weight: 700; margin-bottom: var(--space-lg);">🎪 Yeni Etkinlik Oluştur</h2>
+
+        <div class="create-event-field">
+          <label>Başlık *</label>
+          <input type="text" class="input" id="eventTitleInput" placeholder="Örn: Okey Gecesi, FIFA Turnuvası...">
+        </div>
+
+        <div class="create-event-field">
+          <label>Açıklama *</label>
+          <textarea class="input" id="eventDescInput" rows="2" placeholder="Ne yapacaksınız? Detayları yazın..." style="resize: none;"></textarea>
+        </div>
+
+        <div class="create-event-field">
+          <label>Konum *</label>
+          <input type="text" class="input" id="eventLocationInput" placeholder="Örn: Kadıköy, Beşiktaş...">
+        </div>
+
+        <div class="create-event-field">
+          <label>Kategori *</label>
+          <div class="pin-category-grid" id="eventCategoryGrid">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <div class="create-event-field">
+          <label>Maksimum Kişi Sayısı</label>
+          <div class="member-count-selector">
+            <button id="memberCountMinus">−</button>
+            <div class="count-display" id="memberCountDisplay">4</div>
+            <button id="memberCountPlus">+</button>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: var(--space-md); padding-top: var(--space-sm);">
+          <button class="btn-ghost" id="cancelEventBtn" style="flex: 1; padding: 14px;">İptal</button>
+          <button class="btn-gradient" id="saveEventBtn" style="flex: 1; padding: 14px;">Oluştur 🎪</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal (inside device-frame) -->
+    <div class="modal-overlay" id="editProfileModal">
+      <div class="modal-overlay__bg" id="editProfileModalBg"></div>
+      <div class="modal-content modal-content--scrollable">
+        <div class="modal-handle"></div>
+        <h2 style="font-size: var(--font-lg); font-weight: 700; margin-bottom: var(--space-md);">✏️ Profili Düzenle</h2>
+
+        <!-- Avatar Selection Section -->
+        <div class="create-event-field">
+          <label>Profil Fotoğrafı / Avatar</label>
+          <div class="profile-edit-avatar-preview-wrapper">
+            <div class="avatar avatar--xl" id="editAvatarPreview"></div>
+            <button type="button" class="btn-ghost profile-upload-btn" id="uploadPhotoBtn">
+              📁 Cihazdan Yükle
+            </button>
+            <input type="file" id="avatarFileInput" accept="image/*" style="display: none;">
+          </div>
+          <div class="avatar-preset-label">Veya hazır maskot seç:</div>
+          <div class="avatar-presets-grid" id="avatarPresetsGrid">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <div class="create-event-field">
+          <label>Ad *</label>
+          <input type="text" class="input" id="profileNameInput" placeholder="Adınız">
+        </div>
+
+        <div class="create-event-field">
+          <label>Yaş</label>
+          <input type="number" class="input" id="profileAgeInput" placeholder="Yaşınız" min="16" max="99">
+        </div>
+
+        <div class="create-event-field">
+          <label>Semt / Konum <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 400;">(İsteğe bağlı)</span></label>
+          <input type="text" class="input" id="profileLocationInput" placeholder="Örn: Kadıköy, Beşiktaş...">
+          <label class="checkbox-container" style="display: flex; align-items: center; gap: 8px; margin-top: 6px; cursor: pointer; font-size: var(--font-xs); color: var(--text-secondary);">
+            <input type="checkbox" id="hideLocationCheckbox" style="accent-color: var(--accent-purple); cursor: pointer;">
+            <span>Konumumu profilimde gizle</span>
+          </label>
+        </div>
+
+        <div class="create-event-field">
+          <label>Biyografi</label>
+          <textarea class="input" id="profileBioInput" rows="3" placeholder="Kendinden bahset..." style="resize: none;"></textarea>
+        </div>
+
+        <div class="create-event-field">
+          <label>İlgi Alanları <span style="font-size: 11px; color: var(--text-tertiary); font-weight: 400;">(Dokunup seç)</span></label>
+          <div class="edit-interests-grid" id="editInterestsGrid">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <div style="display: flex; gap: var(--space-md); padding-top: var(--space-sm); padding-bottom: var(--space-md);">
+          <button class="btn-ghost" id="cancelEditProfileBtn" style="flex: 1; padding: 14px;">İptal</button>
+          <button class="btn-gradient" id="saveProfileBtn" style="flex: 1; padding: 14px;">Kaydet ✨</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast (inside device-frame) -->
+    <div class="toast" id="toast">
+      <span id="toastIcon">✅</span>
+      <span id="toastText"></span>
+    </div>
+
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/swipe.js"></script>
+  <script src="js/messages.js"></script>
+  <script src="js/events.js"></script>
+  <script src="js/profile.js"></script>
+</body>
+</html>

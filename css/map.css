@@ -1,0 +1,547 @@
+/* =============================================
+   PinDrop — Map Screen
+   ============================================= */
+
+.map-container {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: var(--z-base);
+}
+
+/* Add mode cursor */
+.map-container.add-mode {
+  cursor: crosshair;
+}
+
+/* ---- Map Search Bar ---- */
+.map-search-bar {
+  position: absolute;
+  top: 10px;
+  left: 16px;
+  right: 16px;
+  z-index: 12;
+  background: rgba(15, 15, 26, 0.78);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  padding: 8px 14px;
+  gap: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  transition: all var(--transition-fast);
+}
+
+.map-search-bar:focus-within {
+  border-color: var(--accent-purple);
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.35);
+  background: rgba(15, 15, 26, 0.92);
+}
+
+.map-search-bar__icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.map-search-bar__input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  font-weight: 500;
+}
+
+.map-search-bar__input::placeholder {
+  color: var(--text-tertiary);
+}
+
+.map-search-clear-btn {
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-search-clear-btn:hover {
+  color: var(--text-primary);
+}
+
+/* ---- Category Filter Bar ---- */
+.map-filters {
+  position: absolute;
+  top: 56px;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  padding: 8px 16px;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.map-filters::-webkit-scrollbar { display: none; }
+
+.map-filter-chip {
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 8px 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.map-filter-chip__icon {
+  font-size: 14px;
+}
+
+.map-filter-chip.active {
+  background: var(--gradient-primary);
+  color: white;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.4);
+}
+
+/* ---- FAB (Add Pin) ---- */
+.map-fab {
+  position: absolute;
+  bottom: 24px;
+  right: 16px;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 20px rgba(168, 85, 247, 0.4);
+  z-index: 10;
+  border: none;
+  cursor: pointer;
+  transition: transform var(--transition-spring), box-shadow var(--transition-normal);
+}
+.map-fab:hover {
+  transform: scale(1.08) rotate(15deg);
+  box-shadow: 0 6px 24px rgba(168, 85, 247, 0.6);
+}
+.map-fab:active { transform: scale(0.95); }
+
+/* ---- Locate Button ---- */
+.map-locate-btn {
+  position: absolute;
+  bottom: 96px;
+  right: 22px;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-full);
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  transition: all var(--transition-normal);
+}
+.map-locate-btn:hover { background: rgba(255, 255, 255, 0.1); }
+
+/* ---- Pin Count Badge ---- */
+.map-pin-count {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-primary);
+  font-size: var(--font-sm);
+  font-weight: 500;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.map-pin-count__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-green);
+  box-shadow: 0 0 8px var(--accent-green);
+  animation: pin-dot-pulse 2s infinite;
+}
+
+@keyframes pin-dot-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+/* ---- Map Markers ---- */
+.map-marker {
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.map-marker__content {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--marker-color, var(--accent-purple));
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.map-marker__icon {
+  font-size: 14px;
+  line-height: 1;
+  color: white;
+}
+
+.map-marker__content::after {
+  content: '';
+  position: absolute;
+  inset: -5px;
+  border-radius: var(--radius-full);
+  border: 2px solid var(--marker-color, var(--accent-purple));
+  animation: marker-ring 2s ease-out infinite;
+  opacity: 0.6;
+  z-index: -1;
+}
+
+@keyframes marker-ring {
+  0% { transform: scale(1); opacity: 0.7; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+.map-marker:hover {
+  z-index: 10 !important;
+}
+
+.map-marker:hover .map-marker__content {
+  transform: scale(1.25);
+  box-shadow: 0 0 18px var(--marker-color, var(--accent-purple));
+}
+
+/* Event marker */
+.map-marker--event {
+  width: 38px;
+  height: 38px;
+  cursor: pointer;
+  z-index: 5;
+}
+
+.map-marker--event .map-marker__content {
+  background: var(--gradient-primary);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.65);
+}
+
+.map-marker--event .map-marker__content::after {
+  border-color: #ec4899;
+  animation: marker-ring 1.5s ease-out infinite;
+  opacity: 0.8;
+}
+
+.map-marker--event .event-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #0f0f18;
+  color: #facc15;
+  border: 1px solid rgba(250, 204, 21, 0.5);
+  border-radius: var(--radius-full);
+  font-size: 9px;
+  font-weight: 800;
+  padding: 1px 4px;
+  line-height: 1;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Cluster marker */
+.map-marker--cluster {
+  width: 40px;
+  height: 40px;
+  cursor: pointer;
+  z-index: 7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.map-marker--cluster .cluster-content {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  border: 2.5px solid white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 0 16px rgba(168, 85, 247, 0.6);
+  position: relative;
+  transition: transform var(--transition-fast);
+}
+
+.map-marker--cluster:hover .cluster-content {
+  transform: scale(1.15);
+}
+
+.map-marker--cluster .cluster-content::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-pink);
+  animation: marker-ring 1.8s infinite;
+  opacity: 0.7;
+}
+
+/* User location dot */
+.map-marker--user {
+  width: 16px;
+  height: 16px;
+  background: var(--accent-blue);
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 0 12px var(--accent-blue);
+  position: relative;
+}
+
+.map-marker--user::after {
+  content: '';
+  position: absolute;
+  top: -8px; left: -8px; right: -8px; bottom: -8px;
+  border-radius: 50%;
+  background: rgba(59, 130, 246, 0.3);
+  animation: user-loc-pulse 2s infinite;
+  z-index: -1;
+}
+
+@keyframes user-loc-pulse {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+/* ---- Custom Popup ---- */
+.map-popup {
+  background: rgba(15, 15, 26, 0.9);
+  border: 1px solid var(--glass-border-light);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  color: var(--text-primary);
+  width: max-content;
+  max-width: 260px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  position: absolute;
+  transform: translate(-50%, -100%);
+  margin-top: -14px;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.map-popup.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.map-popup::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px; height: 12px;
+  background: rgba(15, 15, 26, 0.9);
+  border-right: 1px solid var(--glass-border-light);
+  border-bottom: 1px solid var(--glass-border-light);
+}
+
+.map-popup__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.map-popup__category {
+  font-size: var(--font-sm);
+  font-weight: 600;
+}
+
+.map-popup__time {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.map-popup__desc {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+/* Route info & directions in popup */
+.map-popup__route-info {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  font-size: 11px;
+}
+
+.map-popup__dist {
+  color: var(--accent-green);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.map-popup__directions-btn {
+  background: none;
+  border: none;
+  color: var(--accent-blue);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 4px;
+  text-decoration: underline;
+  transition: color var(--transition-fast);
+}
+
+.map-popup__directions-btn:hover {
+  color: #fff;
+}
+
+.map-popup__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 12px;
+}
+
+.map-popup__like-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--font-xs);
+  color: var(--accent-pink);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.map-popup__like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-glass);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  padding: 5px 12px;
+  color: var(--text-primary);
+  font-size: var(--font-xs);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.map-popup__like-btn:hover {
+  background: rgba(236, 72, 153, 0.15);
+  border-color: rgba(236, 72, 153, 0.4);
+  transform: scale(1.04);
+}
+
+.map-popup__like-btn.liked {
+  background: rgba(236, 72, 153, 0.2);
+  border-color: #ec4899;
+  color: #f43f5e;
+}
+
+/* ---- Pin Category Grid (Modal) ---- */
+.pin-category-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.pin-category-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 8px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  background: var(--bg-glass);
+  color: var(--text-secondary);
+  font-size: var(--font-xs);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.pin-category-btn__icon {
+  font-size: 20px;
+}
+
+.pin-category-btn:hover {
+  background: var(--bg-glass-hover);
+}
+
+.pin-category-btn.selected {
+  border-color: var(--cat-color, var(--accent-purple));
+  background: color-mix(in srgb, var(--cat-color, var(--accent-purple)) 15%, transparent);
+  color: var(--text-primary);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--cat-color, var(--accent-purple)) 30%, transparent);
+}
